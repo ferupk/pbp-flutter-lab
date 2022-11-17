@@ -74,19 +74,16 @@ class _MyBudgetFormPageState extends State<MyBudgetFormPage> {
                     ),
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    // Menambahkan behavior saat nama diketik 
                     onChanged: (String? value) {
                       setState(() {
                         _nominalBudget = int.parse(value!);
                       });
                     },
-                    // Menambahkan behavior saat data disimpan
                     onSaved: (String? value) {
                       setState(() {
                         _nominalBudget = int.parse(value!);
                       });
                     },
-                    // Validator sebagai validasi form
                     validator: (String? value) {
                       if (value == null || value.isEmpty) {
                         return 'Nominal tidak dapat kosong. Coba lagi!';
@@ -112,7 +109,7 @@ class _MyBudgetFormPageState extends State<MyBudgetFormPage> {
                         initialDate: DateTime.now(),
                         firstDate: DateTime(2000),
                         lastDate: DateTime(2100),
-                      ).then((date) {  //tambahkan setState dan panggil variabel _dateTime.
+                      ).then((date) {
                         setState(() {
                           _tanggalBudget = DateFormat('dd/MM/yyyy').format(date!);
                           _tanggalInput.text = _tanggalBudget;
