@@ -147,3 +147,411 @@ Feru Pratama Kartajaya (2106750351) - Kelas E
         ),
       )
       ```
+
+---
+
+# Tugas 8: Flutter Form
+
+Feru Pratama Kartajaya (2106750351) - Kelas E
+
+### `Navigator.push()` dan `Navigator.pushReplacement()`
+
+   `Navigator.push()` menampilkan halaman dengan melakukan push route baru ke dalam stack navigasi, sedangkan `Navigator.pushReplacement()` melakukan push route baru sekaligus pop route sebelumnya.
+
+### Widget dalam Aplikasi *Budget Tracking*
+
+   Berikut beberapa widget yang digunakan untuk menerapkan program di Tugas 8:
+
+   * `Drawer` - Sub-menu untuk mengakses navigasi
+   * `Navigator` dan `MaterialPageRoute` - Navigasi antara halaman-halaman aplikasi
+   * `Form` - Definisi form data budget
+   * `SingleChildScrollView` - Container untuk form
+   * `GlobalKey` - Penanda unik untuk form
+   * `TextFormField` - Input dalam bentuk teks karakter
+   * `TextInputType` dan `FilteringTextInputFormatter` - Menentukan tipe data yang dapat diinput pada `TextFormField`
+   * `TextEditingController` - Mengontrol nilai dari field teks
+   * `DateTime` dan `DateFormat` - Memproses tanggal dan waktu
+   * `DropdownButton` dan `DropdownMenuItem` - Membentuk pilihan form dalam format dropdown
+   * `TextButton` - Tombol untuk menyimpan data budget
+   * `SizedBox` -  Menciptakan jarak antara widget
+   * `ListView` dan `Card` - Menyajikan setiap data budget yang tersimpan
+
+### Flutter Events
+
+   * `onPressed` dan `onTap`: Terpanggil saat sebuah widget ditekan pada layar
+   * `onHover`: Terpanggil saat sebuah *pointer* menunjuk kepada widget yang bersangkutan
+   * `onLongPress`: Terpanggil saat sebuah widget ditekan lama pada layar
+   * `onFocusChange`: Terpanggil saat fokus berganti antara widget
+   * `onChanged`: Terpanggil saat terdapat nilai dari suatu widget yang berubah
+   * `onSaved`: Terpanggil saat data form disimpan
+
+### Navigasi Menggunakan `Navigator`
+
+   `Navigator` merupakan sebuah implementasi dari struktur data *stack* yang menyimpan beberapa objek yang disebut `route`. Sebuah `route` menunjuk kepada sebuah layar/halaman dari program dan `Navigator` digunakan untuk menyusun segala `route` yang ada. `Navigator` dapat melakukan `push()` untuk memindahkan `route` baru ke atas *stack* untuk ditampilkan di layar. `Navigator` juga dapat melakukan `pop()` untuk menghilangkan `route` yang ada di atas *stack* dan mengeluarkannya dari tampilan layar.
+
+### Implementasi Navigasi dan Form dalam Aplikasi *Budget Tracking*
+
+   1. **Menambahkan `Drawer` + BONUS: Refactor Widget `Drawer`**
+
+      Pada fungsi `build()` di class `_MyHomePageState`, tambahkan atribut `drawer` pada widget `Scaffold`. Nilai dari atribut tersebut adalah widget `Drawer` dengan susunan `Column`.
+
+      ```dart
+      @override
+      Widget build(BuildContext context) {
+        return Scaffold(   
+          [...],
+          drawer: Drawer(
+            child: Column(),
+          ),
+          [...],
+        )
+      }
+      ```
+
+      Visual Studio Code menyediakan cara untuk melakukan *refactoring* dengan mudah. Klik kanan pada widget `Drawer` dan pilih `Refactor... > Extract Widget` untuk menciptakan class widget baru. Widget yang diciptakan akan muncul di bagian file paling bawah. Untuk aplikasi ini, widget yang dibuat dinamakan `NavDrawer`.
+
+      ```dart
+      class NavDrawer extends StatelessWidget {
+        const NavDrawer({
+          Key? key,
+        }) : super(key: key);
+
+        @override
+        Widget build(BuildContext context) {
+          return Drawer(
+            child: Column(),
+          );
+        }
+      }
+      ```
+
+      Di folder `lib`, buatlah file baru bernama `nav_drawer.dart` dan pindahkan widget NavDrawer ke file tersebut.
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      class NavDrawer extends StatelessWidget {
+        [...]
+      }
+      ```
+
+      Di `main.dart`, import widget `NavDrawer` dan gunakan widget tersebut sebagai nilai atribut `drawer` pada fungsi `build()`.
+
+      ```dart
+      import 'package:counter_7/nav_drawer.dart';
+      ```
+      ```dart
+      @override
+      Widget build(BuildContext context) {
+        return Scaffold(   
+          [...],
+          drawer: const NavDrawer(),
+          [...],
+        )
+      }
+      ```
+
+      Sekarang, menu `Drawer` kosong dapat diakses melalui tombol di `AppBar` aplikasi.
+
+   2. **Menambahkan Navigasi Halaman**
+
+      Di folder `lib`, buatlah file baru bernama `budget_form.dart` dan `budget_data.dart`. Definisikan class `StatefulWidget` untuk kedua halaman beserta `State` dari halaman tersebut. Import widget `NavDrawer` agar dapat diletakkan pada kedua halaman tersebut.
+
+      ```dart
+      // Contoh: budget_form.dart
+
+      import 'package:flutter/material.dart';
+      import 'package:counter_7/nav_drawer.dart';
+
+      class MyBudgetFormPage extends StatefulWidget {
+        const MyBudgetFormPage({super.key});
+        final String title = 'Form Budget';
+
+        @override
+        State<MyBudgetFormPage> createState() => _MyBudgetFormPageState();
+      }
+
+      class _MyBudgetFormPageState extends State<MyBudgetFormPage> {
+        @override
+        Widget build(BuildContext context) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(widget.title),
+            ),
+            drawer: const NavDrawer(),
+          );
+        }
+      }
+      ```
+
+      Di `nav_drawer.dart`, import ketiga halaman aplikasi dan tambahkan opsi untuk setiap halaman di dalam drawer menggunakan widget `ListTile`. Gunakan widget `Navigator` untuk berpindah antara ketiga halaman saat opsi dipilih.
+
+      ```dart
+      import 'package:counter_7/main.dart';
+      import 'package:counter_7/budget_form.dart';
+      import 'package:counter_7/budget_data.dart';
+      ```
+      ```dart
+      child: Column(
+        children: [
+          ListTile(
+            title: const Text('counter_7'),
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const MyHomePage()),
+              );
+            },
+          ),
+          ListTile(
+            title: const Text('Tambah Budget'),
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const MyBudgetFormPage()),
+              );
+            },
+          ),
+          ListTile(
+            title: const Text('Data Budget'),
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const MyBudgetDataPage()),
+              );
+            },
+          ),
+        ],
+      )
+      ```
+
+      Sekarang, menu `Drawer` berisi opsi-opsi untuk navigasi antara ketiga halaman.
+
+   3. **Menambahkan Halaman Form + BONUS: Date Picker**
+
+      Pada class `_MyBudgetFormPageState` di `budget_form.dart`, buatlah sebuah widget `Form` untuk mengisi data budget. Buatlah juga sebuah variabel GlobalKey `_formKey` sebagai nilai atribut `key`. Field-field dari form akan disisipkan di dalam widget `Column`.
+
+      ```dart
+      final _formKey = GlobalKey<FormState>();
+
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0), 
+            child: Column(
+              children: []
+            ),
+          )
+        ),
+      )
+      ```
+
+      Widget `TextFormField` dapat digunakan untuk menerima data judul, nominal, dan tanggal budget. Tambahkan juga variabel yang sesuai untuk menampung input. Atribut `decoration` digunakan untuk memberi border pada `TextFormField` dan memberikan teks petunjuk untuk setiap kolom data. Atribut `onChanged` dan `onSaved` digunakan untuk menyimpan input setiap ada perubahan. Atribut `validator` berlaku sebagai validasi input dan akan memberitahu user apabila input tidak valid.
+
+      ```dart
+      String _judulBudget = '';
+
+      Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: TextFormField(
+          decoration: InputDecoration(
+            hintText: "Judul",
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(5.0),
+            ),
+          ),
+          onChanged: (String? value) {
+            setState(() {
+              _judulBudget = value!;
+            });
+          },
+          onSaved: (String? value) {
+            setState(() {
+              _judulBudget = value!;
+            });
+          },
+          validator: (String? value) {
+            if (value == null || value.isEmpty) {
+              return 'Judul tidak dapat kosong. Coba lagi!';
+            }
+            return null;
+          },
+        ),
+      )
+      ```
+
+      Kode yang sama digunakan untuk elemen input nominal budget, dengan sedikit perubahan untuk menyimpan nilai dalam tipe data `int`.
+
+      ```dart
+      import 'package:flutter/services.dart';
+      ```
+      ```dart
+      int _nominalBudget = 0;
+
+      // Input terbatas digit angka
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      ```
+      ```dart
+      // Menyimpan input dalam tipe data int
+      onChanged: (String? value) {
+        setState(() {
+          _nominalBudget = int.parse(value!);
+        });
+      },
+      ```
+
+      Kode yang sama digunakan untuk elemen input tanggal budget, dengan sedikit perubahan untuk memilih input menggunakan widget `showDatePicker`.
+
+      ```dart
+      import 'package:intl/intl.dart'; // NOTE: Penggunaan package intl memerlukan update dependensi di pubspec.lock dan pubspec.yaml
+      ```
+      ```dart
+      String _tanggalBudget = 'No date recorded';
+      final TextEditingController _tanggalInput = TextEditingController();
+
+      //Mengontrol display input pada TextFormField
+      controller: _tanggalInput,
+      ```
+      ```dart
+      // Mengisi dan menyimpan input tanggal
+      readOnly: true,
+      onTap: () {
+        showDatePicker(
+          context: context,
+          initialDate: DateTime.now(),
+          firstDate: DateTime(2000),
+          lastDate: DateTime(2100),
+        ).then((date) {
+          setState(() {
+            _tanggalBudget = DateFormat('dd/MM/yyyy').format(date!);
+            _tanggalInput.text = _tanggalBudget;
+          });
+        });
+      }
+      ```
+
+      Widget `DropdownButton` dapat digunakan untu menerima data tipe budget. Sebuah list `listTipeBudget` menampung opsi tipe budget yang dapat dipilih oleh user.
+
+      ```dart
+      String? _tipeBudget;
+      List<String> listTipeBudget = ['Pemasukan', 'Pengeluaran'];
+
+      DropdownButton(
+        value: tipeBudget,
+        icon: const Icon(Icons.keyboard_arrow_down),
+        hint: const Text('Pilih Jenis'),
+        items: listTipeBudget.map((String items) {
+          return DropdownMenuItem(
+            value: items,
+            child: Text(items),
+          );
+        }).toList(),
+        onChanged: (String? newValue) {
+          setState(() {
+            tipeBudget = newValue!;
+          });
+        },
+      )
+      ```
+
+      Widget `TextButton` digunakan untuk meng-submit input form. Saat tombol ditekan, sebuah kotak dialog akan muncul yang menandakan bahwa data budget berhasil disimpan. Penyimpanan data input form oleh program akan dibahas di langkah berikutnya.
+
+      ```dart
+      TextButton(
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.all(Colors.blue),
+        ),
+        onPressed: () {
+          if (_formKey.currentState!.validate()) {
+            showDialog(
+              context: context,
+              builder: (context) {
+                return Dialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 15,
+                  child: ListView(
+                    padding: const EdgeInsets.only(top: 20),
+                    shrinkWrap: true,
+                    children: <Widget>[
+                      const Center(child: Text('Data budget berhasil disimpan!')),
+                      const SizedBox(height: 20),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Kembali'),
+                      ), 
+                    ],
+                  ),
+                );
+              },
+            );
+          }
+        },
+        child: const Text(
+          "Simpan",
+          style: TextStyle(color: Colors.white),
+        ),
+      )
+      ```
+
+   4. **Menampilkan Halaman Data Budget + BONUS: Menampilkan Date Budget**
+
+      Di `budget_data.dart`, buatlah sebuah variabel list `budgetData` dan import `budget_data.dart` di file `budget_form.dart`. Variabel ini berlaku sebagai tempat menyimpan data budget yang akan ditampilkan.
+
+      ```dart
+      // Di budget_data.dart...
+      List budgetData = [];
+
+      // Di budget_form.dart...
+      import 'package:counter_7/budget_data.dart';
+      ```
+
+      Pada tombol untuk meng-submit form budget di `budget_form.dart`, tambahkan barisan kode untuk menyimpan semua data input dalam sebuah list dan menyisipkannya ke dalam `budgetData`.
+
+      ```dart
+      if (_formKey.currentState!.validate()) {
+        budgetData.add([_judulBudget, _nominalBudget, _tanggalBudget, _tipeBudget]);
+        showDialog(...)
+      ```
+
+      Di `budget_data.dart`, widget `Card` dan for loop dapat digunakan untuk menampilkan semua data budget yand ada dalam `budgetData`. `ListView` digunakan untuk menampung Card sehingga dapat meng-scroll layar apabila jumlah data cukup banyak.
+
+      ```dart
+      Center(
+        child: ListView(
+          children: [
+            for (var data in budgetData)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        data[0],
+                        style: const TextStyle(fontSize: 24),
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(data[2]),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(data[1].toString()),
+                          Text(data[3]),
+                        ],
+                      ),
+                    ],
+                  ),
+                )
+              ),
+          ],
+        ),
+      )
+      ```
