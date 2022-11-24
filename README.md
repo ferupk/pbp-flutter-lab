@@ -562,7 +562,7 @@ Feru Pratama Kartajaya (2106750351) - Kelas E
 
 ### Pengambilan JSON Tanpa Model?
 
-   Apabila pengambilan JSON dilakukan tanpa model, data yang diperoleh dari dari fungsi `http.get()` berupa `Future<http.Response>`. Walaupun data tersebut dapat digunakan, tidak direkomendasikan oleh Flutter karena penggunaan data mentah akan lebih sulit dibandingkan data yang telah dikonversi menjadi model.
+   Apabila pengambilan JSON dilakukan tanpa model, data yang diperoleh dari fungsi `http.get()` berupa `Future<http.Response>`. Walaupun data tersebut dapat digunakan, hal ini tidak direkomendasikan oleh Flutter karena penggunaan data mentah akan lebih sulit dibandingkan data yang telah dikonversi menjadi model.
 
 ### Widget dalam Aplikasi MyWatchList
 
@@ -584,13 +584,15 @@ Feru Pratama Kartajaya (2106750351) - Kelas E
    
    1. Menambahkan package `http` pada aplikasi Flutter. Proses ini dapat dilakukan dengan menambahkan dependensi di `pubspec.lock` dan `pubspec.yaml` atau dengan perintah `flutter pub add http` di terminal.
 
-   2. Membuat sebuah model Dart yang dapat menampung data dari JSON.
+   2. Menambahkan *permission* aplikasi untuk mengakses internet di `AndroidManifest.xml`.
 
-   3. Membuat fungsi asinkronus yang melakukan request untuk mengambil data dari sumber menggunakan `http.get()`.
+   3. Membuat sebuah model Dart yang dapat menampung data dari JSON.
 
-   4. Mengkonversi data yang diperoleh ke dalam bentuk model yang telah dibuat.
+   4. Membuat fungsi asinkronus yang melakukan request untuk mengambil data dari sumber menggunakan `http.get()`.
 
-   5. Menampilkan hasil dari pengambilan data tersebut dengan widget `FutureBuilder()`.
+   5. Mengkonversi data yang diperoleh ke dalam bentuk model yang telah dibuat.
+
+   6. Menampilkan hasil dari pengambilan data tersebut dengan widget `FutureBuilder()`.
 
 ### Implementasi Integrasi Web Service Aplikasi MyWatchList
 
