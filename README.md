@@ -555,3 +555,309 @@ Feru Pratama Kartajaya (2106750351) - Kelas E
         ),
       )
       ```
+
+---
+
+# Tugas 9: Integrasi Web Service pada Flutter
+
+### Pengambilan JSON Tanpa Model?
+
+   Apabila pengambilan JSON dilakukan tanpa model, data yang diperoleh dari dari fungsi `http.get()` berupa `Future<http.Response>`. Walaupun data tersebut dapat digunakan, tidak direkomendasikan oleh Flutter karena penggunaan data mentah akan lebih sulit dibandingkan data yang telah dikonversi menjadi model.
+
+### Widget dalam Aplikasi MyWatchList
+
+   Berikut beberapa widget yang digunakan untuk menerapkan program di Tugas 9:
+
+   * `FutureBuilder` - Membuat widget berdasarkan objek Future
+   * `AsyncSnapshot` - Representasi hasil dari fungsi async `fetchMyWatchList()`
+   * `CircularProgressIndicator` - Simbol yang ditampilkan selama fungsi `fetchMyWatchList()` belum mengembalikan hasil
+   * `ListView.builder()` - Membuat widget `ListView` berdasarkan sebuah List
+   * `Card` dan `ListTile` - Representasi setiap item `MyWatchList`
+   * `RoundedRectangleBorder`, `Borderside`, dan `BorderRadius` - Desain border untuk `Card`
+   * `Checkbox` - Mengubah status ditonton dari sebuah `MyWatchList`
+   * `Navigator` - Berpindah antara halaman MyWatchList dan halaman detail
+   * `RichText`, `TextSpan`, dan `TextStyle` - Menata teks pada halaman detail
+   * `BottomAppBar`- Appbar di bawah halaman, letak tombol kembali
+   * `ElevatedButton` - Tombol di halaman detail untuk kembali ke halaman MyWatchList
+
+### Mekanisme Pengambilan Data JSON
+   
+   1. Menambahkan package `http` pada aplikasi Flutter. Proses ini dapat dilakukan dengan menambahkan dependensi di `pubspec.lock` dan `pubspec.yaml` atau dengan perintah `flutter pub add http` di terminal.
+
+   2. Membuat sebuah model Dart yang dapat menampung data dari JSON.
+
+   3. Membuat fungsi asinkronus yang melakukan request untuk mengambil data dari sumber menggunakan `http.get()`.
+
+   4. Mengkonversi data yang diperoleh ke dalam bentuk model yang telah dibuat.
+
+   5. Menampilkan hasil dari pengambilan data tersebut dengan widget `FutureBuilder()`.
+
+### Implementasi Integrasi Web Service Aplikasi MyWatchList
+
+   Sebelum fitur-fitur MyWatchList dapat diimplementasikan, akses internet perlu ditambahkan kepada aplikasi. Di `cmd`, perintah `flutter pub add http` akan menambahkan dependensi HTTP pada aplikasi. Setelah itu, bagian kode ini perlu ditambahkan di `android/app/src/main/AndroidManifest.xml`.
+
+   ```xml
+   <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example.counter_7">
+       ...
+       <!-- Required to fetch data from the Internet. -->
+       <uses-permission android:name="android.permission.INTERNET" />
+   </manifest>
+   ```
+
+   1. **Routing Halaman MyWatchList**
+      
+      Di folder `lib`, buatlah file `my_watch_list_page.dart` dan definisikan `StatefulWidget` untuk halaman tersebut. Jangan lupa import widget`NavDrawer` agar `Drawer` navigasi dapat digunakan.
+
+      ```dart
+      import 'package:flutter/material.dart';
+      import 'package:counter_7/nav_drawer.dart';
+
+      class MyWatchListPage extends StatefulWidget {
+        const MyWatchListPage({super.key});
+        final String title = 'My Watch List';
+
+        @override
+        State<MyWatchListPage> createState() => _MyWatchListPageState();
+      }
+
+      class _MyWatchListPageState extends State<MyWatchListPage> {
+        @override
+        Widget build(BuildContext context) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(widget.title),
+            ),
+            drawer: const NavDrawer(),
+          );
+        }
+      }
+      ```
+
+      Di `lib/nav_drawer.dart`, import `MyWatchListPage` dan tambahkan widget `ListTile` yang merujuk ke halaman MyWatchList.
+
+      ```dart
+      import 'package:counter_7/my_watch_list_page.dart';
+      ```
+      ```dart
+      ListTile(
+        title: const Text('My Watch List'),
+        onTap: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MyWatchListPage()),
+          );
+        },
+      )
+      ```
+
+   2. **Model MyWatchList**
+
+      Di web browser, buka halaman web yang mengandung data model `MyWatchList` dari Tugas 3 dalam format JSON (i.e. https://django-pbp-ferupk.herokuapp.com/mywatchlist/json/) dan salin salah satu model yang ada.
+
+      ```json
+      [
+        {
+          "model": "mywatchlist.mywatchlist",
+          "pk": 2,
+          "fields": {
+            "watched": false,
+            "title": "Nope",
+            "rating": 4,
+            "release_date": "2022-07-22",
+            "review": "Admirable for its originality and ambition even when its reach exceeds its grasp, Nope adds Spielbergian spectacle to Jordan       Peele's growing arsenal."
+          }
+        }
+      ]
+      ```
+
+      [QuickType](https://app.quicktype.io/) dapat digunakan untuk meng-generate kode model `MyWatchList` yang mendukung format JSON. Masukkan model yang telah disalin, lalo ganti Name menjadi `MyWatchList` dan Language menjadi `Dart`. Program akan menghasilkan kode Dart untuk model `Mywatchlist` dan kelas tambahan untuk atribut `fields`. Model sudah dilengkapi dengan fungsi `fromJson()` untuk membentuk model dari data dengan format JSON.
+
+      ![Generate model MyWatchList menggunakan QuickType](https://github.com/ferupk/pbp-flutter-lab/raw/main/img/quicktype_mywatchlist.png)
+
+      Di folder `lib`, buatlah file `my_watch_list.dart` dan sisipkan kode model `MyWatchList` yang telah di-generate sebelumnya.
+
+   3. **Halaman MyWatchList + BONUS: Refactoring `fetchMyWatchList()` dan Update Status Ditonton**
+
+      Di folder `lib`, buatlah file `fetch_my_watch_list.dart`. Import library `convert` dan `http`, serta model `MyWatchList`.
+
+      ```dart
+      import 'dart:convert';
+      import 'package:http/http.dart' as http;
+      import 'package:counter_7/my_watch_list.dart';
+      ```
+
+      Buatlah sebuah fungsi asinkronus `fetchMyWatchList()` yang mengambil string data dari https://django-pbp-ferupk.herokuapp.com/mywatchlist/json/ menggunakan `http.get()`, *parsing* data ke dalam format JSON menggunakan `jsonDecode()`, dan mengembalikan sebuah list yang berisi model `MyWatchList`.
+
+      ```dart
+      Future<List<MyWatchList>> fetchMyWatchList() async {
+        Uri url = Uri.parse('https://django-pbp-ferupk.herokuapp.com/mywatchlist/json/');
+        var response = await http.get(
+          url,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Content-Type": "application/json",
+          },
+        );
+      
+        var data = jsonDecode(utf8.decode(response.bodyBytes));
+      
+        List<MyWatchList> myWatchList = [];
+        for (var watch in data) {
+          myWatchList.add(MyWatchList.fromJson(watch));
+        }
+      
+        return myWatchList;
+      }
+      ```
+
+      Di `lib/my_watch_list_page.dart`, import fungsi `fetchMyWatchList()`. Untuk class `State` halaman MyWatchList, tambahkan variabel `futureMyWatchList` yang akan menampung hasil dari fungsi.
+
+      ```dart
+      import 'package:counter_7/fetch_my_watch_list.dart';
+      ```
+      ```dart
+      Future<List<MyWatchList>> futureMyWatchList = fetchMyWatchList();
+      ```
+
+      Pada widget `build(BuildContext context)`, tambahkan atribut `body` dengan widget `FutureBuilder`. Untuk atribut `future`, gunakan variabel `futureMyWatchList`. Tambahkan juga atribut builder dengan parameter `context` dan `snapshot`. `snapshot` akan mengandung hasil dari `fetchMyWatchList()`.
+
+      ```dart
+      body: FutureBuilder(
+        future: futureMyWatchList,
+        builder: (context, snapshot) {
+          if (snapshot.data == null) {
+            return const Center(child: CircularProgressIndicator()); // Icon loading muncul selama menunggu hasil fetchMyWatchList()
+          }
+        },
+      )
+      ```
+
+      Apabila fetchMyWatchList() telah mengembalikan list `MyWatchList`, tampilkan setiap model menggunakan widget `ListView.builder()`. Untuk atribut `itemCount`, gunakan panjang dari data snapshot. Tambahkan juga atribut builder dengan parameter `context` dan `snapshot`. `index` akan digunakan untuk mengiterasi setiap model dalam list.
+
+      ```dart
+      if (snapshot.data == null) {
+        ...
+      } else {
+        return ListView.builder(
+          itemCount: snapshot.data!.length,
+          itemBuilder: (context, index) => Card(),
+        );
+      }
+      ```
+
+      Untuk setiap `Card` dalam halaman MyWatchList, hanya judul yang perlu ditampilkan. Diberikan border berwarna yang menunjukkan apabila `MyWatchList` telah ditonton atau tidak.
+
+      ```dart
+      Card(
+        shape: RoundedRectangleBorder(
+          side: BorderSide(
+            color: (snapshot.data![index].fields.watched ? Colors.green : Colors.red),
+            width: 2
+          ),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: ListTile(
+          title: Text(snapshot.data![index].fields.title),
+        )
+      )
+      ```
+
+      Untuk atribut `leading` pada `ListTile`, tambahkan sebuah `Checkbox` yang dapat mengubah status ditonton dari `MyWatchList`.
+
+      ```dart
+      ListTile(
+        ...
+        leading: Checkbox(
+          value: snapshot.data![index].fields.watched,
+          onChanged: (value) {
+            setState(() {
+              snapshot.data![index].fields.watched = value!;
+            }); 
+          }
+        ),
+      )
+      ```
+
+   4. **Halaman Detail**
+      
+      Di folder `lib`, buatlah file `my_watch_list_detail.dart` dan definisikan `StatefulWidget` untuk halaman tersebut. Import widget `NavDrawer`, model `MyWatchList`, dan library `intl`. Buatlah variabel `myWatchList` yang akan menampung salah satu model `MyWatchList` yang akan ditampilkan detailnya. Tambahkan juga variabel tersebut sebagai parameter untuk constructor widget.
+
+      ```dart
+      import 'package:flutter/material.dart';
+      import 'package:counter_7/nav_drawer.dart';
+      import 'package:counter_7/my_watch_list.dart';
+      import 'package:intl/intl.dart';
+
+      class MyWatchListDetail extends StatefulWidget {
+      const MyWatchListDetail({super.key, required this.myWatchList});
+      final String title = 'Detail';
+      final MyWatchList myWatchList;
+
+      @override
+      State<MyWatchListDetail> createState() => _MyWatchListDetailState();
+      }
+
+      class _MyWatchListDetailState extends State<MyWatchListDetail> {
+        @override
+        Widget build(BuildContext context) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(widget.title),
+            ),
+            drawer: const NavDrawer(),
+          );
+        }
+      }
+      ```
+
+      Pada widget `build(BuildContext context)`, tambahkan atribut `body` dengan widget yang merangkai detail informasi tentang sebuah `MyWatchList`. `DateFormat` dapat digunakan untuk mengubah tipe data DateTime menjadi String berformat. `RichText` dan `TextSpan` dapat digunakan untuk mencampur antara tulisan **bold** dan tulisan biasa.
+
+      ```dart
+      body: Padding(
+        padding: const EdgeInsets.all(8), 
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ...
+            // contoh: release date
+            RichText(
+              text: TextSpan(
+                style: const TextStyle(color: Colors.black, fontSize: 18),
+                children: [
+                  const TextSpan(text: "Release Date: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                  TextSpan(text: DateFormat('MMM d, yyyy').format(widget.myWatchList.fields.releaseDate)),
+                ]
+              )
+            ),
+            ...
+          ],
+        ),
+      ),
+      ```
+
+      Tambahkan atribut `bottomNavigationBar` dengan widget `BottomAppBar`. Tambahkan sebuah button untuk kembali ke halaman MyWatchList dengan `Navigator.pop()`.
+
+      ```dart
+      bottomNavigationBar: BottomAppBar(
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text("Back")
+          ),
+        )
+      )
+      ```
+
+      Akhirnya, tambahkan atribut `onTap` pada `ListTile` di `my_watch_list_page.dart` sehingga halaman detail akan ditampilkan saat sebuah `MyWatchList` ditekan. Gunakan `Navigator.push` dengan model `MyWatchList` sebagai parameter widget `MyWatchListDetail`.
+
+      ```dart
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MyWatchListDetail(myWatchList: snapshot.data![index])),
+        );
+      }
+      ```
